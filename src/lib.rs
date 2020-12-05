@@ -1,3 +1,4 @@
+use core::hash::Hasher;
 use std::slice;
 
 const P0: u64 = 0xa076_1d64_78bd_642f;
@@ -52,7 +53,7 @@ fn wymix(mut a: u64, mut b: u64) -> u64 {
     a ^ b
 }
 
-pub fn wyhash(bytes: &[u8], mut seed: u64) -> u64 {
+pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
     seed ^= P0;
 
     let a: u64;
@@ -131,18 +132,54 @@ pub fn wyhash(bytes: &[u8], mut seed: u64) -> u64 {
             b = wyr8(as_array_8(slice::from_raw_parts(ptr.add(offset), 8)));
         }
     }
-    return wymix(P1 ^ bytes.len() as u64, wymix(a ^ P1, b ^ seed));
+    wymix(a ^ P1, b ^ seed)
+}
+
+pub fn wyhash_single(bytes: &[u8], seed: u64) -> u64 {
+    let seed = _wyhash(bytes, seed);
+
+    wymix(P1 ^ bytes.len() as u64, seed)
+}
+
+/// WyHash hasher
+#[derive(Default, Clone, Copy)]
+pub struct WyHash {
+    h: u64,
+    size: u64,
+}
+
+impl WyHash {
+    /// Create hasher with a seed
+    pub fn with_seed(seed: u64) -> Self {
+        WyHash { h: seed, size: 0 }
+    }
+}
+
+impl Hasher for WyHash {
+    #[inline]
+    fn write(&mut self, bytes: &[u8]) {
+        if !bytes.is_empty() {
+            self.h = _wyhash(bytes, self.h);
+            self.size += bytes.len() as u64
+        } else {
+            self.h ^= P0;
+        }
+    }
+    #[inline]
+    fn finish(&self) -> u64 {
+        wymix(P1 ^ self.size, self.h)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::wyhash;
+    use crate::wyhash_single;
 
     #[test]
     fn it_works() {
         let data: [u8; 80] = [1; 80];
 
-        println!("input {} data {}", 'a' as u8, wyhash(&data, 1));
-        assert!(wyhash(&data, 1) != 0)
+        println!("input {} data {}", 'a' as u8, wyhash_single(&data, 1));
+        assert!(wyhash_single(&data, 1) != 0)
     }
 }
