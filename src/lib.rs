@@ -1,8 +1,37 @@
-#![feature(core_intrinsics)]
+#![cfg_attr(feature = "nightly", feature(core_intrinsics))]
 
 use core::hash::Hasher;
+#[cfg(feature = "nightly")]
 use std::intrinsics::{likely, unlikely};
 use std::slice;
+
+#[cfg(feature = "nightly")]
+macro_rules! likely {
+    ($x:expr) => {
+        likely($x)
+    };
+}
+
+#[cfg(feature = "nightly")]
+macro_rules! unlikely {
+    ($x:expr) => {
+        unlikely($x)
+    };
+}
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! likely {
+    ($x:expr) => {
+        $x
+    };
+}
+
+#[cfg(not(feature = "nightly"))]
+macro_rules! unlikely {
+    ($x:expr) => {
+        $x
+    };
+}
 
 const P0: u64 = 0xa076_1d64_78bd_642f;
 const P1: u64 = 0xe703_7ed1_a0b4_28db;
@@ -63,13 +92,13 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
     let a: u64;
     let b: u64;
 
-    if likely(bytes.len() <= 16) {
-        if likely(bytes.len() <= 8) {
-            if likely(bytes.len() >= 4) {
+    if likely!(bytes.len() <= 16) {
+        if likely!(bytes.len() <= 8) {
+            if likely!(bytes.len() >= 4) {
                 a = wyr4(as_array_4(&bytes[0..4]));
                 b = wyr4(as_array_4(&bytes[bytes.len() - 4..]));
                 return wymix(a ^ P1, b ^ seed);
-            } else if likely(!bytes.is_empty()) {
+            } else if likely!(!bytes.is_empty()) {
                 a = wyr3(&bytes[..], bytes.len());
                 b = 0;
                 return wymix(a ^ P1, b ^ seed);
@@ -88,7 +117,7 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
 
         let ptr = bytes.as_ptr();
         let mut pos = 0;
-        if unlikely(bytes.len() > 48) {
+        if unlikely!(bytes.len() > 48) {
             let mut see1 = seed;
             let mut see2 = seed;
             while i > 48 {
@@ -113,7 +142,7 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
             }
             seed ^= see1 ^ see2;
         }
-        while unlikely(i > 16) {
+        while unlikely!(i > 16) {
             unsafe {
                 seed = wymix(
                     wyr8(as_array_8(slice::from_raw_parts(ptr.add(pos), 8))) ^ P1,
@@ -157,7 +186,7 @@ impl WyHash {
 impl Hasher for WyHash {
     #[inline]
     fn write(&mut self, bytes: &[u8]) {
-        if likely(!bytes.is_empty()) {
+        if likely!(!bytes.is_empty()) {
             self.h = _wyhash(bytes, self.h);
             self.size += bytes.len() as u64
         } else {
