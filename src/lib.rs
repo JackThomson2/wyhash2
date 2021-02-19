@@ -1,37 +1,10 @@
 #![cfg_attr(feature = "nightly", feature(core_intrinsics))]
 
-use core::hash::Hasher;
-#[cfg(feature = "nightly")]
-use std::intrinsics::{likely, unlikely};
+#[macro_use]
+mod helpers;
+mod impls;
+
 use std::slice;
-
-#[cfg(feature = "nightly")]
-macro_rules! likely {
-    ($x:expr) => {
-        likely($x)
-    };
-}
-
-#[cfg(feature = "nightly")]
-macro_rules! unlikely {
-    ($x:expr) => {
-        unlikely($x)
-    };
-}
-
-#[cfg(not(feature = "nightly"))]
-macro_rules! likely {
-    ($x:expr) => {
-        $x
-    };
-}
-
-#[cfg(not(feature = "nightly"))]
-macro_rules! unlikely {
-    ($x:expr) => {
-        $x
-    };
-}
 
 const P0: u64 = 0xa076_1d64_78bd_642f;
 const P1: u64 = 0xe703_7ed1_a0b4_28db;
@@ -180,22 +153,6 @@ impl WyHash {
     /// Create hasher with a seed
     pub fn with_seed(seed: u64) -> Self {
         WyHash { h: seed, size: 0 }
-    }
-}
-
-impl Hasher for WyHash {
-    #[inline]
-    fn write(&mut self, bytes: &[u8]) {
-        if likely!(!bytes.is_empty()) {
-            self.h = _wyhash(bytes, self.h);
-            self.size += bytes.len() as u64
-        } else {
-            self.h ^= P0;
-        }
-    }
-    #[inline]
-    fn finish(&self) -> u64 {
-        wymix(P1 ^ self.size, self.h)
     }
 }
 
