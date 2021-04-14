@@ -1,6 +1,6 @@
 [package]
 name = "wyhash2"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["JackThomson2 <jackathomson@outlook.com>"]
 edition = "2018"
 license = "MIT OR Apache-2.0"
@@ -10,9 +10,12 @@ repository = "https://github.com/JackThomson2/wyhash2"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+no-std-compat = "0.4"
 
 [features]
-default = []
+default = [ "std" ] # Default to using the std
+# Disable for no_std
+std = [ "no-std-compat/std" ]
 
 # Enables nightly features for core intrisics such as likely and unlikely
 nightly = []

@@ -6,7 +6,9 @@ Thanks also goes to [Eldruin](https://github.com/eldruin/wyhash-rs) their WyHash
 
 ## Features
 
-Currently the only feature is `nightly` which enables some nightly only intrinsicts which can help improve performance.
+- `nightly` which enables some nightly only intrinsicts which can help improve performance.
+
+ - `std` This is enabled by default, however can be disabled for `no_std` enviroments
 
 ## Usage
 
@@ -41,9 +43,12 @@ fn main() {
 }
 ```
 
-## Upcoming features
+## no_std usage
 
-- No-STD compatibility will coming soon.
+``` toml
+[dependencies]
+wyhash2 = { version = "...", default-features = false }
+```
 
 ## License
 

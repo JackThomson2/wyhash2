@@ -1,10 +1,11 @@
 #![cfg_attr(feature = "nightly", feature(core_intrinsics))]
+#![cfg_attr(not(feature = "std"), no_std)]
+
+use no_std_compat::slice;
 
 #[macro_use]
 mod helpers;
 mod impls;
-
-use std::slice;
 
 const P0: u64 = 0xa076_1d64_78bd_642f;
 const P1: u64 = 0xe703_7ed1_a0b4_28db;
@@ -164,7 +165,7 @@ mod tests {
     fn it_works() {
         let data: [u8; 80] = [1; 80];
 
-        println!("input {} data {}", 'a' as u8, wyhash_single(&data, 1));
+        //println!("input {} data {}", 'a' as u8, wyhash_single(&data, 1));
         assert!(wyhash_single(&data, 1) != 0)
     }
 }

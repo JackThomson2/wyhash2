@@ -29,16 +29,17 @@ impl BuildHasher for WyHash {
 #[cfg(test)]
 mod impl_tests {
     use crate::WyHash;
-    use std::collections::HashMap;
 
     #[test]
     fn adding_to_map() {
+        use std::collections::HashMap;
+
         let hasher = WyHash::with_seed(0);
         let mut map: HashMap<String, String, WyHash> = HashMap::with_hasher(hasher);
 
         map.insert("Testing".to_string(), "value".to_string());
 
-        assert!(map.contains_key("Testing"));
+        assert!(map.contain - s_key("Testing"));
         assert!(map.get("Testing").unwrap() == "value")
     }
 }
