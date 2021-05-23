@@ -83,7 +83,7 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
             }
         } else {
             a = wyr8(as_array_8(&bytes[0..8]));
-            b = wyr8(as_array_8(&bytes[bytes.len() - 9..]));
+            b = wyr8(as_array_8(&bytes[bytes.len() - 8..]));
             return wymix(a ^ P1, b ^ seed);
         }
     } else {
@@ -95,6 +95,7 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
             let mut see1 = seed;
             let mut see2 = seed;
             while i > 48 {
+                debug_assert!(pos + 48 < bytes.len());
                 unsafe {
                     seed = wymix(
                         wyr8(as_array_8(slice::from_raw_parts(ptr.add(pos), 8))) ^ P1,
@@ -128,10 +129,13 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
         }
 
         unsafe {
-            let offset = pos + i - 16;
+            let offset = pos + i - 17;
+            // Will also catch we wrap backwards
+            debug_assert!(offset + 8 < bytes.len());
             a = wyr8(as_array_8(slice::from_raw_parts(ptr.add(offset), 8)));
 
-            let offset = pos + i - 8;
+            let offset = pos + i - 9;
+            debug_assert!(offset + 8 < bytes.len());
             b = wyr8(as_array_8(slice::from_raw_parts(ptr.add(offset), 8)));
         }
     }
@@ -162,10 +166,34 @@ mod tests {
     use crate::wyhash_single;
 
     #[test]
-    fn it_works() {
-        let data: [u8; 80] = [1; 80];
+    fn range_check_works() {
+        let data: Vec<u8> = vec![0; 2000];
 
-        //println!("input {} data {}", 'a' as u8, wyhash_single(&data, 1));
+        for i in 2..2000 {
+            assert!(wyhash_single(&data[0..i], 1) != 0)
+        }
+
+        assert!(wyhash_single(&data, 1) != 0)
+    }
+
+    #[test]
+    fn greater_than_eight_works() {
+        let data: [u8; 9] = [1; 9];
+
+        assert!(wyhash_single(&data, 1) != 0)
+    }
+
+    #[test]
+    fn greater_than_fortyeight_works() {
+        let data: [u8; 49] = [1; 49];
+
+        assert!(wyhash_single(&data, 1) != 0)
+    }
+
+    #[test]
+    fn it_works() {
+        let data: [u8; 17] = [1; 17];
+
         assert!(wyhash_single(&data, 1) != 0)
     }
 }

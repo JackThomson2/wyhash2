@@ -39,7 +39,7 @@ mod impl_tests {
 
         map.insert("Testing".to_string(), "value".to_string());
 
-        assert!(map.contain - s_key("Testing"));
+        assert!(map.contains_key("Testing"));
         assert!(map.get("Testing").unwrap() == "value")
     }
 }
