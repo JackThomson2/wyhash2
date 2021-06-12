@@ -94,7 +94,7 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
         if unlikely!(bytes.len() > 48) {
             let mut see1 = seed;
             let mut see2 = seed;
-            while i > 48 {
+            loop {
                 debug_assert!(pos + 48 < bytes.len());
                 unsafe {
                     seed = wymix(
@@ -114,6 +114,10 @@ pub fn _wyhash(bytes: &[u8], mut seed: u64) -> u64 {
                 }
                 pos += 48;
                 i -= 48;
+
+                if i <= 48 {
+                    break;
+                }
             }
             seed ^= see1 ^ see2;
         }
